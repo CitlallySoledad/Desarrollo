@@ -20,6 +20,7 @@ build/
 
 # Django
 *.sqlite3
+*.log
 media/
 staticfiles/
 
@@ -27,6 +28,7 @@ staticfiles/
 node_modules/
 dist/
 .npm
+.npm-cache/
 
 # VS Code
 .vscode/settings.json

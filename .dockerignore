@@ -1,0 +1,14 @@
+.git
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.log
+node_modules
+dist
+.npm
+.npm-cache
+backend/.env
+frontend/.npm-cache

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -6,6 +7,8 @@ from .models import Categoria, Color, Marca, Producto, Talla, VarianteProducto
 
 class ProductosApiTests(APITestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username='tester', password='password123')
+        self.client.force_authenticate(user=self.user)
         self.categoria = Categoria.objects.create(nombre='Ropa')
         self.marca = Marca.objects.create(nombre='Marca Norte')
         self.talla = Talla.objects.create(nombre='M')
@@ -61,3 +64,19 @@ class ProductosApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_no_permite_crear_producto_sin_autenticacion(self):
+        self.client.force_authenticate(user=None)
+
+        response = self.client.post(
+            '/api/productos/',
+            {
+                'nombre': 'Camisa',
+                'descripcion': 'Camisa casual',
+                'categoria': self.categoria.id_categoria,
+                'marca': self.marca.id_marca,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
