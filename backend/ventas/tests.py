@@ -13,6 +13,8 @@ from .services import VentaService
 
 class VentaServiceTests(APITestCase):
     def setUp(self):
+        self.auth_user = User.objects.create_user(username='tester', password='password123')
+        self.client.force_authenticate(user=self.auth_user)
         self.role = Role.objects.create(nombre_role='Vendedor', descripcion='Registra ventas')
         self.usuario = Usuario.objects.create(
             username='cajero',
@@ -52,6 +54,22 @@ class VentaServiceTests(APITestCase):
     def test_no_permite_vender_sin_stock(self):
         with self.assertRaises(InsufficientStockError):
             VentaService.registrar_venta(self.usuario.id_usuario, self.variante.id_variante, 30, 'efectivo')
+
+    def test_no_permite_registrar_venta_sin_autenticacion(self):
+        self.client.force_authenticate(user=None)
+
+        response = self.client.post(
+            '/api/ventas/',
+            {
+                'usuario_id': self.usuario.id_usuario,
+                'variante_id': self.variante.id_variante,
+                'cantidad': 1,
+                'metodo_pago': 'efectivo',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class AuthApiTests(APITestCase):

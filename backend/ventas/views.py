@@ -1,6 +1,8 @@
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
 
+from core.permissions import IsAuthenticatedOrReadOnly
+
 from .exceptions import DomainError, InsufficientStockError
 from .models import Venta
 from .serializers import VentaCreateSerializer, VentaSerializer
@@ -10,6 +12,7 @@ from .services import VentaService
 class VentaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Venta.objects.select_related('usuario').prefetch_related('detalles__variante__producto').all()
     serializer_class = VentaSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request):
         serializer = VentaCreateSerializer(data=request.data)
