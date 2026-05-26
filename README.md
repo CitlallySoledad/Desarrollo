@@ -349,3 +349,98 @@ El pipeline se ejecuta en cada `push` o `pull_request` hacia `master` o `main` y
 4. Crear productos.
 5. Crear variantes con SKU, codigo de barras, precio y stock.
 6. Registrar ventas seleccionando usuario, variante, cantidad y metodo de pago.
+
+## Despliegue en Railway
+
+Este proyecto está completamente configurado para despliegarse en [Railway](https://railway.app).
+
+### Preparacion
+
+1. Crear cuenta en [railway.app](https://railway.app)
+2. Instalar Railway CLI:
+   ```bash
+   npm i -g @railway/cli
+   ```
+3. Hacer login en Railway:
+   ```bash
+   railway login
+   ```
+
+### Despliegue desde GitHub
+
+La forma más fácil es conectar tu repositorio GitHub a Railway:
+
+1. En el dashboard de Railway, click en "New Project"
+2. Selecciona "Deploy from GitHub repo"
+3. Autentica con GitHub y selecciona tu repositorio
+4. Railway detectará automáticamente el `Dockerfile` en la raíz
+5. Agrega plugin de PostgreSQL (recomendado) o MySQL
+
+### Despliegue desde CLI
+
+```bash
+# Desde la carpeta raíz del proyecto
+railway init
+railway up
+```
+
+### Variables de entorno en Railway
+
+En el dashboard del proyecto, en la sección "Variables", agrega:
+
+```
+DJANGO_SECRET_KEY=tu-clave-secreta-muy-larga-y-aleatoria
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=*.up.railway.app,*.railway.app
+JWT_ACCESS_MINUTES=60
+JWT_REFRESH_DAYS=1
+```
+
+**Importante**: Railway proporciona `DATABASE_URL` automáticamente si agregas un plugin de PostgreSQL.
+
+### Estructura de despliegue
+
+- **Dockerfile**: Compila el frontend Vue y luego construye una imagen con Django + archivos estáticos
+- **Procfile**: Define el comando web (gunicorn) y release (migraciones)
+- **railway.json**: Configuración específica de Railway
+- **runtime.txt**: Especifica la versión de Python (3.12)
+
+El frontend se compila a archivos estáticos que Django sirve automáticamente.
+
+### Base de datos
+
+Para producción, se recomienda usar PostgreSQL en lugar de MySQL:
+
+1. En Railway, agrega un plugin "PostgreSQL" 
+2. Railway proporcionará automáticamente `DATABASE_URL`
+3. El `settings.py` usa `DATABASE_URL` automáticamente si está disponible
+
+### Monitoreo y logs
+
+```bash
+# Ver logs en tiempo real
+railway logs
+
+# Abrir la aplicación en navegador
+railway open
+
+# Ver variables de entorno
+railway variables
+```
+
+### Troubleshooting
+
+**Error: "ModuleNotFoundError"**
+- Verifica que todos los módulos están en `backend/requirements.txt`
+- Ejecuta `railway logs` para ver detalles
+
+**Error: "Database does not exist"**
+- La migración inicial fallará si no agregas un plugin de base de datos
+- Agrega PostgreSQL o MySQL en Railway primero
+
+**Frontend no se muestra**
+- Verifica que `DJANGO_ALLOWED_HOSTS` incluye el dominio de Railway
+- Verifica que `npm run build` funciona localmente
+
+Para información más detallada, consulta [RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md)
+

@@ -22,8 +22,13 @@ def load_env_file(env_path):
 load_env_file(BASE_DIR / '.env')
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', get_random_secret_key())
-DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
-ALLOWED_HOSTS = [host for host in os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host]
+DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
+
+# ALLOWED_HOSTS para producción
+ALLOWED_HOSTS_STR = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(',') if host.strip()]
+if not DEBUG:
+    ALLOWED_HOSTS.extend(['*.up.railway.app', '*.railway.app'])
 
 
 INSTALLED_APPS = [
@@ -43,6 +48,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -71,16 +77,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.mysql'),
-        'NAME': os.getenv('DB_NAME', 'db_punto_venta'),
-        'USER': os.getenv('DB_USER', 'root'),
-        'PASSWORD': os.getenv('DB_PASSWORD', '12345'),
-        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DB_PORT', '3306'),
+# Configuración de base de datos
+# En Railway, se proporciona DATABASE_URL automáticamente
+if os.getenv('DATABASE_URL'):
+    # Usar PostgreSQL en producción (Railway)
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Usar SQLite localmente o MySQL según configuración
+    DATABASES = {
+        'default': {
+            'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
+            'NAME': os.getenv('DB_NAME', 'db.sqlite3'),
+            'USER': os.getenv('DB_USER', 'root') if 'mysql' in os.getenv('DB_ENGINE', '') else '',
+            'PASSWORD': os.getenv('DB_PASSWORD', '12345') if 'mysql' in os.getenv('DB_ENGINE', '') else '',
+            'HOST': os.getenv('DB_HOST', '127.0.0.1') if 'mysql' in os.getenv('DB_ENGINE', '') else '',
+            'PORT': os.getenv('DB_PORT', '3306') if 'mysql' in os.getenv('DB_ENGINE', '') else '',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -123,6 +143,12 @@ USE_TZ = True
 
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media files
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_ALL_ORIGINS = True
 
