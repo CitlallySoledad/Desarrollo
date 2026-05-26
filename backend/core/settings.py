@@ -27,8 +27,17 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
 # ALLOWED_HOSTS para producción
 ALLOWED_HOSTS_STR = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(',') if host.strip()]
+
 if not DEBUG:
-    ALLOWED_HOSTS.extend(['*.up.railway.app', '*.railway.app'])
+    ALLOWED_HOSTS.extend([
+        'desarrollo-production-50b5.up.railway.app',
+        '.up.railway.app',
+        '.railway.app',
+    ])
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://desarrollo-production-50b5.up.railway.app',
+]
 
 
 INSTALLED_APPS = [
