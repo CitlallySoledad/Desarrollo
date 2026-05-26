@@ -62,7 +62,7 @@ type Section = 'catalogos' | 'productos' | 'usuarios' | 'ventas'
 
 const activeSection = ref<Section>('catalogos')
 const loading = ref(false)
-const statusMessage = ref('Cargando datos...')
+const statusMessage = ref('')
 const statusKind = ref<'ok' | 'error' | 'info'>('info')
 const token = ref(localStorage.getItem('access_token') || '')
 const currentUser = ref(localStorage.getItem('current_user') || '')
@@ -389,11 +389,7 @@ onMounted(() => {
         <button class="primary-button" type="submit" :disabled="loading">Entrar</button>
       </form>
 
-      <p class="status-message" :class="statusKind">{{ statusMessage }}</p>
-
-      <div class="login-actions">
-        <span>Usa el usuario creado con <code>python manage.py createsuperuser</code>.</span>
-      </div>
+      <p v-if="statusMessage" class="status-message" :class="statusKind">{{ statusMessage }}</p>
     </section>
   </main>
 
@@ -445,7 +441,7 @@ onMounted(() => {
       <button class="secondary-button" type="button" :disabled="loading" @click="loadData">Actualizar</button>
     </div>
 
-    <p class="status-message" :class="statusKind">{{ statusMessage }}</p>
+    <p v-if="statusMessage" class="status-message" :class="statusKind">{{ statusMessage }}</p>
 
     <section v-if="activeSection === 'catalogos'" class="dashboard-grid">
       <article class="panel">
