@@ -58,7 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_active', 'is_staff', 'rol']
 
-    def get_rol(self, obj):
+    def get_rol(self, obj) -> str:
         if obj.is_superuser or obj.is_staff:
             return 'admin'
         return 'usuario'
