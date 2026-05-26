@@ -10,4 +10,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  preview: {
+    allowedHosts: [
+      'grateful-presence-production-5204.up.railway.app'
+    ]
+  }
 })
